@@ -6,22 +6,25 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @State private var image: Image?
     @State private var isLoading = false
+    private let service = PhotoService()
     
     var body: some View {
         VStack {
             if let image { image.resizable().scaledToFit() }
             Button("Load Photos") {
-                isLoading = true
-                let url = URL(string: "https://picsum.photos/2000/3000")!
-                let data = try! Data(contentsOf: url)
-                if let uiImage = UIImage(data: data) {
-                    image = Image(uiImage: uiImage)
+                Task {
+                    isLoading = true
+                    if let data = try await service.loadImageData(),
+                       let uiImage = UIImage(data: data) {
+                        image = Image(uiImage: uiImage)
+                    }
+                    isLoading = false
                 }
-                isLoading = false
             }
             if isLoading { ProgressView() }
         }
